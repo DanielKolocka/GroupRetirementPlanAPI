@@ -4,8 +4,10 @@ spring:
 
   datasource:
     url: jdbc:postgresql://localhost:5432/group_retirement_plan
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+#    username: ${DB_USERNAME}
+#    password: ${DB_PASSWORD}
+    username: postgres
+    password: postgres
 #    driver-class-name: org.postgresql.Driver
 
   jpa:

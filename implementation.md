@@ -255,7 +255,7 @@ Two simple enum files: `PlanType` (`DC_PENSION`, `GROUP_RRSP`,
 **Done when:** both compile with no dependencies on anything else.
 
 ### Step 4 — Build the entities
-Build in dependency order: `Employer` first (nothing depends on it), then
+Build in dependency order: `testEmployer` first (nothing depends on it), then
 `Plan` (references Employer), then `Member` (references Employer and Plan),
 then `Contribution` (references Member, and self-references for the linked
 match). Use the field tables in Section 3 exactly — field names should match
