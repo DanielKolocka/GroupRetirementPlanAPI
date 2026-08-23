@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: retirement-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: group_retirement_plan
+    ports:
+      - "5432:5432"
+    volumes:
+      - retirement_pgdata:/var/lib/postgresql/data
+
+volumes:
+  retirement_pgdata:
