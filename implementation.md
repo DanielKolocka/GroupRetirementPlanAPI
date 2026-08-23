@@ -268,8 +268,8 @@ prove the schema is correct yet — that check comes in Step 9.
 ### Step 5 — Build the repositories
 Four interfaces extending `JpaRepository<Entity, UUID>`. Add the specific
 finder methods you'll need based on the API spec above — for example,
-`PlanRepository` needs a way to find all plans for an employer, and
-`ContributionRepository` needs a way to sum contributions by member, source,
+`planRepository` needs a way to find all plans for an employer, and
+`contributionRepository` needs a way to sum contributions by member, source,
 and a date cutoff (this is what powers the match-cap calculation in Step 8).
 
 **Done when:** they compile. You won't be able to fully test these in
