@@ -46,23 +46,15 @@ public class ContributionService {
         LocalDate contributionDate = reloaded.getCreatedAt().atZone(ZoneId.systemDefault()).toLocalDate();
         boolean inRange = !contributionDate.isBefore(payPeriodStart) && !contributionDate.isAfter(payPeriodEnd);
 
-        BigDecimal proposedMatch = request.amount().multiply(plan.getMatchPercentage()).divide(BigDecimal.valueOf(100));
-        BigDecimal annualCapDollars = member.getAnnualSalary().multiply(plan.getMatchCapPercentage()).divide(BigDecimal.valueOf(100));
-
-        List<contribution> employerContributions = contributionRepository.findEmployerMatchContributionsByMemberId(member_id);
-        BigDecimal totalEmployerMatch = BigDecimal.ZERO;
-        for (contribution employerContribution : employerContributions) {
-            totalEmployerMatch = totalEmployerMatch.add(employerContribution.getAmount());
-        }
-        BigDecimal remainingCapRoom = annualCapDollars.subtract(totalEmployerMatch);
-        BigDecimal actualMatch = proposedMatch.min(remainingCapRoom).max(BigDecimal.ZERO);
+        BigDecimal actualMatch = calculateEmployerMatch(member, plan, request.amount());
 
         ContributionResponse employer_match_contribution = null;
         if (actualMatch.compareTo(BigDecimal.ZERO) > 0 && inRange) {
 //            Fetch prior contribution ID and add as linkedContribution
             contribution employerContribution = new contribution(member_id, actualMatch, ContributionSource.EMPLOYER_MATCH, payPeriodStart, payPeriodEnd, reloaded.getId());
-            contribution employerReloaded = contributionRepository.findById(employerContribution.getId())
-                    .orElseThrow(() -> new NotFoundException("Contribution not found: " + employerContribution.getId()));
+            contribution savedEmployerContribution = contributionRepository.save(employerContribution);
+            contribution employerReloaded = contributionRepository.findById(savedEmployerContribution.getId())
+                    .orElseThrow(() -> new NotFoundException("Contribution not found: " + savedEmployerContribution.getId()));
             employer_match_contribution = new ContributionResponse(employerReloaded.getId(), employerReloaded.getMemberId(), employerReloaded.getAmount(), employerReloaded.getSource(), employerReloaded.getPayPeriodStart(), employerReloaded.getPayPeriodEnd(), reloaded.getId(), employerReloaded.getCreatedAt());
 
         }
@@ -70,5 +62,19 @@ public class ContributionService {
 
         return new MemberContributionResponse(employee_contribution, employer_match_contribution);
 
+    }
+
+    public BigDecimal calculateEmployerMatch(member member, plan plan, BigDecimal employeeAmount) {
+        BigDecimal proposedMatch = employeeAmount.multiply(plan.getMatchPercentage()).divide(BigDecimal.valueOf(100));
+        BigDecimal annualCapDollars = member.getAnnualSalary().multiply(plan.getMatchCapPercentage()).divide(BigDecimal.valueOf(100));
+
+        List<contribution> employerContributions = contributionRepository.findEmployerMatchContributionsByMemberId(member.getId());
+        BigDecimal totalEmployerMatch = BigDecimal.ZERO;
+        for (contribution employerContribution : employerContributions) {
+            totalEmployerMatch = totalEmployerMatch.add(employerContribution.getAmount());
+        }
+
+        BigDecimal remainingCapRoom = annualCapDollars.subtract(totalEmployerMatch);
+        return proposedMatch.min(remainingCapRoom).max(BigDecimal.ZERO);
     }
 }
