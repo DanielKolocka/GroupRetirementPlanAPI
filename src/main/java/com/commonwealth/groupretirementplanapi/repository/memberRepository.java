@@ -7,4 +7,5 @@ import java.util.List;
 import java.util.UUID;
 
 public interface memberRepository extends JpaRepository<member, UUID> {
+    List<member> findByEmployerId(UUID employerId);
 }
